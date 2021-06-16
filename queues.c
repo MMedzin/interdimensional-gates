@@ -6,7 +6,7 @@ void add_to_queue(queue_elem** first, int rank, int source){
     new_elem->rank = rank;
     new_elem->source = source;
     new_elem->pending = TRUE;
-    if(*first == NULL || (*first)->rank > rank){
+    if(*first == NULL || (*first)->rank > rank || (((*first)->rank == rank) && ((*first)->source > source))){
         new_elem->next = *first;
         *first = new_elem;
         return;
@@ -18,14 +18,14 @@ void add_to_queue(queue_elem** first, int rank, int source){
     }
     queue_elem** current_elem = &((*first)->next);
     while((*current_elem)->next != NULL){
-        if((*current_elem)->rank > rank){
+        if((*current_elem)->rank > rank || (((*current_elem)->rank == rank) && ((*current_elem)->source > source))){
             new_elem->next = *current_elem;
             *current_elem = new_elem;
             return;
         }
         current_elem = &((*current_elem)->next);
     }
-    if((*current_elem)->rank > rank){
+    if((*current_elem)->rank > rank || (((*current_elem)->rank == rank) && ((*current_elem)->source > source))){
         new_elem->next = *current_elem;
         *current_elem = new_elem;
     }
@@ -79,17 +79,12 @@ int is_medium_free(queue_elem* first, int source, int mediums_count){
 }
 
 void check_delete(queue_elem** first, int amount){
-    printf("check delete'uje\n");
     if((*first)->pending){
-        printf("\n\npending\n\n");
         return;
     }
     queue_elem** curr_elem = &((*first)->next);
-    printf("printuje kolejke\n");
-    print_queue(*first);
     for(int i = 0; i < amount-1; i++){
         if (*curr_elem == NULL || (*curr_elem)->pending){
-            printf("%d curr is null.\n", i);
             return;
         }
         curr_elem = &((*curr_elem)->next);
@@ -105,6 +100,10 @@ void check_delete(queue_elem** first, int amount){
 
 void free_queue(queue_elem** first){
     if(first == NULL) return;
+    if((*first)->next == NULL){
+        free(*first);
+        return;
+    }
     free_queue(&((*first)->next));
     free(*first);
 }

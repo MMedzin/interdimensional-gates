@@ -11,7 +11,7 @@
 #include <pthread.h>
 #include "queues.h"
 /* odkomentować, jeżeli się chce DEBUGI */
-#define DEBUG
+//#define DEBUG
 /* boolean */
 #define TRUE 1
 #define FALSE 0
@@ -28,21 +28,6 @@ extern state_t state;
 extern int rank;
 extern int size;
 
-/* Ile mamy łoju na składzie? */
-extern int tallow;
-
-/* stan globalny wykryty przez monitor */
-extern int globalState;
-/* ilu już odpowiedziało na GIVEMESTATE */
-extern int numberReceived;
-
-// struktura z informacjami o tunwlu - wykorzystywana w zarządzaniu kolejką powrotu
-typedef struct {
-    int time; // zegar lamporta w momencie przejścia przez tunel
-    int tunnel; // identyfikator uytego tunelu
-} tunnel_info_t;
-
-/* to może przeniesiemy do global... */
 typedef struct {
     int ts;       /* timestamp (zegar lamporta */
     int src;      /* pole nie przesyłane, ale ustawiane w main_loop */
@@ -59,31 +44,19 @@ extern int lamport; // zegar lamporta
 int incLamport();
 int incMaxLamport(int n);
 
-extern int recordedState; // zapisany stan magazynu
-extern int receivedMarkers; // otrzymane markery stan�w magazynu
-extern int involvedInStateRec; // czy stan zostal ju� zanotowany?
-extern int *channelStates; // tablica informacji o stanie kanal�w przesylowych
-void recordState();
-void sendState();
+extern int myShopReqLamport;
 
 extern char* shop_queue;
 extern char* return_queue;
 
-extern int ack_s_counter; // licznik otrzymanych ACK_S
-extern int ack_m_counter; // licznik otrzymanych ACK_M
+extern int ack_s_count; // licznik otrzymanych ACK_S
+extern int ack_m_count; // licznik otrzymanych ACK_M
+extern int ack_r_count; // licznik otrzymanych ACK_R
 
 extern int used_medium; // indeks medium z jakiego skorzystał proces (istotne tylko w stanach Medium - Return)
 extern int travel_time; // stan zegaru lamporta w momencie skorzystania z medium (istotne tylko w stanach Medium - Return)
 
 extern queue_elem* medium_queue_first;
-
-/* Typy wiadomości */
-#define FINISH 1
-#define TALLOWTRANSPORT 2
-#define INRUN 3
-#define INMONITOR 4
-#define GIVEMESTATE 5
-#define STATE 6
 
 /* typy wiadomości */
 #define FINISH 1
@@ -142,14 +115,14 @@ extern int medium_uses_counter[MEDIUMS_COUNT];
 
 /* wysyłanie pakietu, skrót: wskaźnik do pakietu (0 oznacza stwórz pusty pakiet), do kogo, z jakim typem */
 void sendPacket(packet_t *pkt, int destination, int tag);
+void sendPacketNoInc(packet_t *pkt, int destination, int tag);
 void changeState( state_t );
-void changeTallow( int );
 
 state_t current_state();
 int get_used_medium();
 
 void broadcast_request(int tag, packet_t *pkt);
-void broadcast_request_simple(int tag);
+void broadcast_request_simple(int tag, int reqLamport);
 void send_ack_queue(int tag, char* queue);
 
 void manage_req_s(packet_t *pkt);

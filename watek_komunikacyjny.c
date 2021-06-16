@@ -13,7 +13,6 @@ void *startKomWatek(void *ptr)
         debug("czekam na recv");
         MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         incMaxLamport(pakiet.ts);
-        println("Otrzymałem: %d od %d", status.MPI_TAG, status.MPI_SOURCE);
         switch ( status.MPI_TAG ) {
             case FINISH:
                 changeState(Finish);
@@ -27,7 +26,7 @@ void *startKomWatek(void *ptr)
                     if (enough_ack_s()){
                         changeState(Shop);
                         reset_ack_s_count();
-                        debug("Wchodzę do sklepu.");
+                        println("Wchodzę do sklepu.");
                     }
                 }
                 break;
@@ -41,7 +40,7 @@ void *startKomWatek(void *ptr)
                         save_used_medium();
                         changeState(Medium);
                         reset_ack_m_count();
-                        debug("Wchodzę do tunelu. Używane medium: %d.", get_used_medium());
+                        println("Wchodzę do tunelu. Używane medium: %d.", get_used_medium());
                     }
                 }
                 break;
@@ -51,7 +50,7 @@ void *startKomWatek(void *ptr)
                     save_used_medium();
                     changeState(Medium);
                     reset_ack_m_count();
-                    debug("Wchodzę do tunelu. Używane medium: %d.", get_used_medium());
+                    println("Wchodzę do tunelu. Używane medium: %d.", get_used_medium());
                 }
                 break;
             case REQ_R:
@@ -63,55 +62,11 @@ void *startKomWatek(void *ptr)
                     if(enough_ack_r()){
                         changeState(Return);
                         reset_ack_r_count();
-                        debug("Wracam do domu.");
+                        println("Wracam do domu.");
                     }
                 }
                 break;
         }
-
-//        switch ( status.MPI_TAG ) {
-//	    case FINISH:
-//                changeState(Finish);
-//	    break;
-//	    case TALLOWTRANSPORT:
-//	   	if(involvedInStateRec == 1){
-//			channelStates[pakiet.src] += pakiet.data;
-//		}
-//                changeTallow( pakiet.data);
-//                debug("Dostałem wiadomość od %d z danymi %d",pakiet.src, pakiet.data);
-//	    break;
-//	    case GIVEMESTATE:
-//	   	if(involvedInStateRec == 0) recordState();
-//		receivedMarkers++;
-//		if(receivedMarkers == size-1 && rank != 0){
-//			sendState();
-//                	debug("Wysyłam mój stan do monitora: %d funtów łoju na składzie!", tallow);
-//		}
-//	    break;
-//            case STATE:
-//                numberReceived++;
-//                globalState += pakiet.data;
-//                if (numberReceived == size-1 && receivedMarkers == size-1) {
-//		    globalState += recordedState;
-//		    for(int i=0; i<size; i++){
-//			    globalState += channelStates[i];
-//		    }
-//                    debug("W magazynach mamy %d funtów łoju.", globalState);
-//		    involvedInStateRec = 0;
-//		    free(channelStates);
-//                }
-//            break;
-//	    case INMONITOR:
-//                changeState( InMonitor );
-//                debug("Od tej chwili czekam na polecenia od monitora");
-//	    break;
-//	    case INRUN:
-//                changeState( InRun );
-//                debug("Od tej chwili decyzję podejmuję autonomicznie i losowo");
-//	    break;
-//	    default:
-//	    break;
-//        }
     }
 }
 
